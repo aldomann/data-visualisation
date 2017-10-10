@@ -9,7 +9,7 @@ n1 <- length(new)
 n2 <- length(conv)
 total <- n1+n2
 
-sttrue= mean(new)-mean(conv)
+sttrue= mean(new) - mean(conv)
 cnt= 0 #zero the counter
 #Put both sets of observations in a single vector
 vect = c(new, conv)
@@ -30,8 +30,8 @@ p.val <- cnt/nr
 # Visualisation of the p-value in a histogram
 ggplot() +
 	geom_histogram(aes(st), binwidth = 1) +
-	geom_vline(aes(xintercept = sttrue), colour = "blue") +
-	# geom_vline(aes(xintercept = quantile(st, prob = 1-p.val)), colour = "green") +
+	# geom_vline(aes(xintercept = sttrue), colour = "blue") +
+	geom_vline(aes(xintercept = quantile(st, prob = 1-p.val)), colour = "blue") +
 	geom_vline(aes(xintercept = quantile(st, prob = 0.95)), colour = "red") +
 	# annotate("text", x = -12, y = 700, label = paste("p-value = ", p.val)) +
 	labs(title = paste("Permutation test;", "p-value =", p.val, "    HYPOTHESIS:", ifelse(p.val < 1-0.95 ,"YEA BOI!", "FAIL!")))
