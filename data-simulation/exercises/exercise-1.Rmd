@@ -3,11 +3,13 @@ title: "Data Visualization"
 author: "Alfredo Hernández"
 subtitle: Exercise 1
 output:
+  pdf_document:
+    fig_height: 3.5
+    fig_width: 9
+    toc: yes
   html_notebook:
     highlight: pygments
     theme: cosmo
-    toc: yes
-  pdf_document:
     toc: yes
 ---
 
@@ -20,8 +22,10 @@ this $Y$.
 X <- c(39, 29, 60, 40, 32)
 Y <- c(11, 5, 20, 8, 6)
 ```
-- Download the package `combinat` in order to use the function `permn()`. Perform an exact test for $H_{0} : \rho = 0$ against $H_{1} : \rho > 0$. Use Pearson and Spearman correlation coefficient as well.
+- Download the package `combinat` in order to use the function `permn()`.
+- Perform an exact test for $H_{0} : \rho = 0$ against $H_{1} : \rho > 0$. Use Pearson and Spearman correlation coefficient as well.
 ```{r message=FALSE}
+# Necessary libraries
 library(combinat)
 library(stats)
 library(ggplot2)
@@ -33,7 +37,6 @@ rho.true.p <- cor(X,Y, method = "pearson")
 rho.true.s <- cor(X,Y, method = "spearman")
 ```
 
-
 ```{r}
 perm.Y <- permn(Y)
 ```
@@ -43,26 +46,28 @@ perm.Y <- permn(Y)
 rho.p <- numeric(n.perm.Y)
 count <- 0
 for (i in 1:n.perm.Y) {
-	rho.p[i] <- cor(X, perm.Y[[i]])
-	if (rho.p[i] > rho.true.p) {
-		count <- count + 1
-	}
+  rho.p[i] <- cor(X, perm.Y[[i]], method = "pearson")
+  if (rho.p[i] > rho.true.p) {
+    count <- count + 1
+  }
 }
 p.val.p <- count/n.perm.Y
 p.val.p
 ```
 
-```{r}
+```{r message=FALSE}
 # Histogram of rho
 ggplot() +
-	geom_histogram(aes(rho.p), colour="black", fill="white") +
-	geom_vline(aes(xintercept = quantile(rho.p, prob = 1 - p.val.p), colour = "1 - p-value"), 
-						 show.legend = T) +
-	geom_vline(aes(xintercept = quantile(rho.p, prob = 0.95), colour = "1 - alpha"), 
-						 linetype = "longdash", show.legend = T) +
-	labs(title = paste0("Cor. coeff. histogram; p-value = ", format(round(p.val.p, 4), nsmall = 4), " (null hypothesis ", ifelse(p.val.p < 1-0.95 ,"rejected", "failed to be rejected"), ")"),
-			 colour = "quantile") +
-	scale_color_manual(values = c("red","blue"))
+  geom_histogram(aes(rho.p), colour="black", fill="white") +
+  geom_vline(aes(xintercept = quantile(rho.p, prob = 1 - p.val.p), 
+                 colour = "1 - p-value"), show.legend = T) +
+  geom_vline(aes(xintercept = quantile(rho.p, prob = 0.95), 
+                 colour = "1 - alpha"), linetype = "longdash", show.legend = T) +
+  labs(title = paste0("Cor. coeff. histogram; p-value = ",
+                      format(round(p.val.p, 4), nsmall = 4), " (null hypothesis ", 
+                      ifelse(p.val.p < 1-0.95 , "rejected", "failed to be rejected"), ")"),
+       colour = "quantile") +
+  scale_color_manual(values = c("red","blue"))
 ```
 
 ## Spearman Correlation Coefficient
@@ -71,26 +76,28 @@ ggplot() +
 rho.s <- numeric(n.perm.Y)
 count <- 0
 for (i in 1:n.perm.Y) {
-	rho.s[i] <- cor(X, perm.Y[[i]], method = "spearman")
-	if (rho.s[i] > rho.true.s) {
-		count <- count + 1
-	}
+  rho.s[i] <- cor(X, perm.Y[[i]], method = "spearman")
+  if (rho.s[i] > rho.true.s) {
+    count <- count + 1
+  }
 }
 p.val.s <- count/n.perm.Y
 p.val.s
 ```
 
-```{r}
+```{r message=FALSE}
 # Histogram of rho
 ggplot() +
-	geom_histogram(aes(rho.s), colour="black", fill="white") +
-	geom_vline(aes(xintercept = quantile(rho.s, prob = 1 - p.val.s), colour = "1 - p-value"), 
-						 show.legend = T) +
-	geom_vline(aes(xintercept = quantile(rho.s, prob = 0.95), colour = "1 - alpha"), 
-						 linetype = "longdash", show.legend = T) +
-	labs(title = paste0("Cor. coeff. histogram; p-value = ", format(round(p.val.p, 4), nsmall = 4), " (null hypothesis ", ifelse(p.val.s < 1-0.95 ,"rejected", "failed to be rejected"), ")"),
-			 colour = "quantile") +
-	scale_color_manual(values = c("red","blue"))
+  geom_histogram(aes(rho.s), colour="black", fill="white") +
+  geom_vline(aes(xintercept = quantile(rho.s, prob = 1 - p.val.s), 
+             colour = "1 - p-value"), show.legend = T) +
+  geom_vline(aes(xintercept = quantile(rho.s, prob = 0.95), 
+             colour = "1 - alpha"), linetype = "longdash", show.legend = T) +
+  labs(title = paste0("Cor. coeff. histogram; p-value = ",
+                      format(round(p.val.p, 4), nsmall = 4), " (null hypothesis ", 
+                      ifelse(p.val.s < 1-0.95 , "rejected", "failed to be rejected"), ")"),
+       colour = "quantile") +
+  scale_color_manual(values = c("red","blue"))
 ```
 
 # Exercise 1.2
@@ -102,6 +109,14 @@ weight.std <- c(2.5, 3.4, 2.9, 4.1, 5.3, 3.4, 1.9, 3.3, 1.8)
 weight.add <- c(3.5, 6.3, 4.2, 4.3, 3.8, 5.7, 4.4)
 ```
 
+```{r}
+# Values used in some of the different tests
+n.re <- 10000
+n.std <- length(weight.std)
+n.add <- length(weight.add)
+n.total <- n.std + n.add
+```
+
 ## Classical T-test
 - Is the additive efficient? Perform a classical T-test and use the
 corresponding T-statistic to perform a permutation test.
@@ -109,85 +124,128 @@ corresponding T-statistic to perform a permutation test.
 Here we are testing $H_{0} : \operatorname{E}(add) = \operatorname{E}(std)$ against $H_{1} : \operatorname{E}(add) > \operatorname{E}(std)$.
 
 ```{r}
-n.re <- 10000
-n.std <- length(weight.std)
-n.add <- length(weight.add)
-n.total <- n.std + n.add
-```
-
-```{r}
-st.true <- mean(weight.add) - mean(weight.std)
-st <- numeric(n.re)
+# Mean statistics
+mn.true <- mean(weight.add) - mean(weight.std)
+mn <- numeric(n.re)
 
 count <- 0
-weight.all <-  c(weight.std, weight.add)
+weight.all <- c(weight.std, weight.add)
 
 for (i in 1:n.re) {
-	d <- sample(weight.all, n.total)
-	test.add <- d[1:n.add]
-	a <- n.add + 1
-	test.std <- d[a:n.total]
-	st[i] <- mean(test.add) - mean(test.std)
-	if (st[i] > st.true) {
-		count <- count + 1
-	}
+  d <- sample(weight.all, n.total)
+  test.add <- d[1:n.add]
+  a <- n.add + 1
+  test.std <- d[a:n.total]
+  mn[i] <- mean(test.add) - mean(test.std)
+  if (mn[i] > mn.true) {
+    count <- count + 1
+  }
 }
-p.val <- count/n.re
-p.val
+p.val.mn <- count/n.re
+p.val.mn
 ```
 
-```{r}
+```{r message=FALSE}
 # Histogram of mean statistics
 ggplot() +
-	geom_histogram(aes(st), colour="black", fill="white") +
-	geom_vline(aes(xintercept = quantile(st, prob = 1 - p.val), colour = "1 - p-value"), 
-						 show.legend = T) +
-	geom_vline(aes(xintercept = quantile(st, prob = 0.95), colour = "1 - alpha"), 
-						 linetype = "longdash", show.legend = T) +
-	labs(title = paste0("mean statistics histogram; p-value = ", format(round(p.val, 4), nsmall = 4), " (null hypothesis ", ifelse(p.val.s < 1-0.95 ,"rejected", "failed to be rejected"), ")"),
-			 colour = "quantile") +
-	scale_color_manual(values = c("red","blue", "green"))
+  geom_histogram(aes(mn), colour="black", fill="white") +
+  geom_vline(aes(xintercept = quantile(mn, prob = 1 - p.val.mn), 
+             colour = "1 - p-value"), show.legend = T) +
+  geom_vline(aes(xintercept = quantile(mn, prob = 0.95), 
+             colour = "1 - alpha"), linetype = "longdash", show.legend = T) +
+  labs(title = paste0("mean statistics histogram; p-value = ",
+                      format(round(p.val.mn, 4), nsmall = 4), " (null hypothesis ", 
+                      ifelse(p.val.mn < 1-0.95 , "rejected", "failed to be rejected"), ")"),
+       colour = "quantile") +
+  scale_color_manual(values = c("red","blue", "green"))
 ```
 
 ## Other statistics
 - Explore several statistics in order to perform the permutation
 test. What is the final conclusion?
 
+### Median statistics
 Here we are testing $H_{0} : \operatorname{median}(add) = \operatorname{median}(std)$ against $H_{1} : \operatorname{median}(add) > \operatorname{median}(std)$.
 
 ```{r}
-st.true <- median(weight.add) - median(weight.std)
-st <- numeric(n.re)
+# Median statistics
+mdn.true <- median(weight.add) - median(weight.std)
+mdn <- numeric(n.re)
 
 count <- 0
 weight.all <-  c(weight.std, weight.add)
 
 for (i in 1:n.re) {
-	d <- sample(weight.all, n.total)
-	test.add <- d[1:n.add]
-	a <- n.add + 1
-	test.std <- d[a:n.total]
-	st[i] <- median(test.add) - median(test.std)
-	if (st[i] > st.true) {
-		count <- count + 1
-	}
+  d <- sample(weight.all, n.total)
+  test.add <- d[1:n.add]
+  a <- n.add + 1
+  test.std <- d[a:n.total]
+  mdn[i] <- median(test.add) - median(test.std)
+  if (mdn[i] > mdn.true) {
+    count <- count + 1
+  }
 }
-p.val <- count/n.re
-p.val
+p.val.mdn <- count/n.re
+p.val.mdn
 ```
 
-```{r}
+```{r message=FALSE}
 # Histogram of median statistics
 ggplot() +
-	geom_histogram(aes(st), colour="black", fill="white") +
-	geom_vline(aes(xintercept = quantile(st, prob = 1 - p.val), colour = "1 - p-value"), 
-						 show.legend = T) +
-	geom_vline(aes(xintercept = quantile(st, prob = 0.95), colour = "1 - alpha"), 
-						 linetype = "longdash", show.legend = T) +
-	labs(title = paste0("median statistics histogram; p-value = ", format(round(p.val, 4), nsmall = 4), " (null hypothesis ", ifelse(p.val.s < 1-0.95 ,"rejected", "failed to be rejected"), ")"),
-			 colour = "quantile") +
-	scale_color_manual(values = c("red","blue", "green"))
+  geom_histogram(aes(mdn), colour="black", fill="white") +
+  geom_vline(aes(xintercept = quantile(mdn, prob = 1 - p.val.mdn), 
+             colour = "1 - p-value"), show.legend = T) +
+  geom_vline(aes(xintercept = quantile(mdn, prob = 0.95), 
+             colour = "1 - alpha"), linetype = "longdash", show.legend = T) +
+  labs(title = paste0("median statistics histogram; p-value = ",
+                      format(round(p.val.mdn, 4), nsmall = 4), " (null hypothesis ", 
+                      ifelse(p.val.mdn < 1-0.95 , "rejected", "failed to be rejected"), ")"),
+       colour = "quantile") +
+  scale_color_manual(values = c("red","blue", "green"))
 ```
 
-### Conclusions
-We conclude that, indeed, the null hypothesis $H_{0}: \verb|weight.add| = \verb|weight.std|$ is rejected; which in turn tells us they are different distributions.
+### Proportion statistics
+Here we are testing $H_{0} : \operatorname{E}(add)/\operatorname{E}(std) = 1$ against $H_{1} : \operatorname{obs}(add)/\operatorname{obs}(std) > 1$, where the permutations will give us an exact test (we understand $\operatorname{obs}(X)$ as an observation from the $X$ variable).
+
+```{r}
+# Proportion statistics
+prop.true <- mean(weight.add)/mean(weight.std)
+prop <- numeric(n.add * n.std)
+
+count <- 0
+k <- 1
+
+for (i in 1:n.std) {
+  for (j in 1:n.add) {
+    prop[k] <- weight.add[j]/weight.std[i]
+    k <- k + 1
+  }
+}
+
+for (k in length(prop)) {
+  if (prop[k] > prop.true) {
+    count <- count + 1
+  }
+}
+
+p.val.prop <- count/n.re
+p.val.prop
+```
+
+```{r message=FALSE}
+# Histogram of proportion statistics
+ggplot() +
+  geom_histogram(aes(prop), colour="black", fill="white") +
+  geom_vline(aes(xintercept = quantile(prop, prob = 1 - p.val.prop), 
+             colour = "1 - p-value"), show.legend = T) +
+  geom_vline(aes(xintercept = quantile(prop, prob = 0.95), 
+             colour = "1 - alpha"), linetype = "longdash", show.legend = T) +
+  labs(title = paste0("proportion statistics histogram; p-value = ",
+                      format(round(p.val.prop, 4), nsmall = 4), " (null hypothesis ", 
+                      ifelse(p.val.prop < 1-0.95 , "rejected", "failed to be rejected"), ")"),
+       colour = "quantile") +
+  scale_color_manual(values = c("red","blue", "green"))
+```
+
+## Conclusions
+We conclude that, indeed, the null hypothesis $H_{0}: \verb|weight.add| = \verb|weight.std|$ is rejected; which in turn tells us they are different distributions, and that indeed (given the design of our different tests) the new additive is efficient.
