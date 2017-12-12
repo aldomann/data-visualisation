@@ -1,0 +1,79 @@
+---
+title: "Data Visualization"
+author: "Alfredo Hernández"
+subtitle: "ANOVA methods"
+output:
+  html_notebook:
+    highlight: pygments
+    theme: cosmo
+    toc: yes
+  pdf_document:
+    fig_height: 3.5
+    fig_width: 9
+    toc: yes
+---
+
+# ANOVA two-way
+```{r message=FALSE}
+library(tidyverse)
+library(ggplot2)
+```
+
+$$ y_{ijk} = \tau{i} + m_{j} + (\tau m)_{ij} + \epsilon_{ijk} $$
+
+where
+$i =$ small or large,
+$j =$ month,
+$k =$ replicants.
+
+
+```{r}
+data <- read.table("lizards.txt", header = T)
+x <- data$X
+month <- factor(data$MONTH)
+size <- factor(data$SIZE)
+fit <- lm(x ~ size + month + size:month)
+anova(fit)
+```
+
+```{r}
+ggplot() +
+	geom_point(data = data[SIZE == "small"], aes(x = MONTH, y = X))
+# 	
+# ggplot(data) +
+# 	geom_point(aes(x = month, y = x)) +
+# 	facet_wrap(~ size)
+```
+
+
+
+The p-values are calculated assuming normality
+
+Permutation test are distribution-free. So we can try using them.
+
+# Approximate test
+```{r}
+fit <- lm(x ~ size + month + size:month)
+b <- anova(fit)
+Fstrue <- b$"F value"[1] ; Fmtrue<-b$"F value"[2]
+FItrue <- b$"F value"[3]
+
+nr <- 10000 #number of rearrangements to be examined
+
+Fs <- numeric(nr)
+Fm <- numeric(nr)
+FI <- numeric(nr)
+
+for (i in 1:nr){
+	newx <- sample(x, 24)
+	fit <- lm(newx ~ size + month + size:month)
+	b <- anova(fit)
+	Fs[i] <- b$"F value"[1] 
+	Fm[i] <- b$"F value"[2]
+	FI[i] <- b$"F value"[3] 
+}
+length(Fs[Fs >= Fstrue])/nr
+length(Fm[Fm >= Fmtrue])/nr
+length(FI[FI >= FItrue])/nr
+```
+

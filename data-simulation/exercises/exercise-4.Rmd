@@ -1,0 +1,30 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+cars <- data.frame(
+	cbind(km = c(37388, 44758, 45833, 30862, 31705, 34010),
+	price = c(14636, 14122, 14016, 15590, 15568, 14718))
+	)
+
+lm.model <- lm(price ~ km, cars)
+summary(lm.model)
+```
+```{r}
+new.car <- 50000
+predicted.price <- coef(lm.model)[[1]] + new.car * coef(lm.model)[[2]]
+```
+
+```{r}
+ggplot(cars) +
+	geom_point(aes(x = km, y = price)) +
+	geom_point(aes(x = new.car, y = predicted.price), colour = "red") +
+	geom_smooth(aes(x = km, y = price), method = lm)
+```
+

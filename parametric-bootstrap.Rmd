@@ -1,0 +1,240 @@
+---
+title: "Data Visualization"
+author: "Alfredo Hernández"
+subtitle: "Parametric and non-parametric bootstrap"
+date: "25 October 2017"
+output:
+  html_notebook:
+    highlight: pygments
+    theme: cosmo
+    toc: yes
+  pdf_document:
+    fig_height: 3.5
+    fig_width: 9
+    toc: yes
+---
+
+# The parametric bootstrap for censored data
+
+## Type II censored data (WIP)
+
+It occurs when a life test is terminated exactly when a pre-specified number of failures have occurred. The remaining units have not yet failed. If $n$ units were on test, and the pre-specified number of failures is $r \leq n$, then the test ends at $t_{r} =$ the time of the $r$-th failure. For instance, this sample was
+censored after 7 failures and the remaining units were 3.
+
+The maximum likelihood estimator of the failure time mean is:
+$$ \hat{\theta} = \dfrac{\sum_{i=1}^{r} t_{(i) + (n - r) t_{(r)}}}{r} $$
+
+```{r}
+time<-c(125, 189, 210, 356, 468, 550, 610)
+ftm<-(sum(time)+3*max(time))/7
+ftm
+```
+
+### Parametric bootstrap replicates
+```{r}
+nsim <- 1000
+ftmr <- numeric(nsim)
+
+for(i in 1:nsim){
+	x <- rexp(10,1/ftm)
+	y <- sort(x)
+	y <- y[1:7]
+	ftmr[i]<-(sum(y)+3*max(y))/7
+}
+```
+```{r}
+#Bootstrap estimate:
+mean(ftmr)
+#Expected Bias:
+mean(ftmr) - ftm
+#Estimated standard error:
+sd(ftmr)
+# 95% confidence intervals
+quantile(ftmr, probs = c(0.025, 0.975))
+```
+This leads to the interval $[254 , 1138] : 696 \pm 442$.
+
+
+## Type I censored data
+
+It occurs when a life test is terminated exactly for a fixed time $c$. The remaining units have not yet failed. $n$ units were on test, and $r$ units have failed at a time less or equal to $c$ (where r is less than or equal to $n$). For instance, now this sample corresponds to a life test experiment that was ended at `c = 612`, and the remaining units were 3.
+
+The maximum likelihood estimator of the failure time mean is:
+$$ \hat{\theta} = \dfrac{\sum_{i=1}^{r} t_{(i) + (n - r) c}}{r} = \frac{T}{r} $$
+
+```{r}
+time <- c(125, 189, 210, 356, 468, 550, 610)
+c <- 612
+ftm <- (sum(time) + 3*c)/7
+ftm
+```
+
+### Parametric bootstrap replicates
+```{r}
+nsim<-1000
+ftmr<-numeric(nsim);
+for(i in 1:nsim) {
+	x<-rexp(10,1/ftm)
+	y<-x[x<=c]
+	r<-length(y)
+	ftmr[i]<-(sum(y)+(10-r)*c)/r
+}
+```
+
+```{r}
+#Bootstrap estimate:
+mean(ftmr)
+#Expected Bias:
+mean(ftmr) - ftm
+#Estimated standard error:
+sd(ftmr)
+# 95% confidence intervals
+quantile(ftmr, probs = c(0.025, 0.975))
+```
+
+# The non-parametric bootstrap
+
+TODO: stuff (before page 37)
+
+## CLESS: Common language effect size statistic
+
+CLESS is an estimation of the probability that a randomly selected value from the population with the greatest expectation will be greater than a randomly sampled value from the other population.
+
+$$ CLESS \approx P(X_{d} - X_{h} > 0) = P\left(Z < \frac{\mu_{d} - \mu_{h}}{\sigma \sqrt{2}}  \right) = \Phi(d/\sqrt{2}) $$
+
+where $d$ is the effect size.
+
+### Can normality be assumed?
+
+The quotient 2D:4D is in some sense arbitrary. Why not consider $4D:2D$ instead?
+
+It is natural to expect that the same statistical model used for $2D:4D$ could also describe the $4D:2D$ ratios, that is, the data set of the reciprocals.
+
+However, if the r.v. $X$ is normally distributed $1/X$ is not normally distributed !!
+
+We are going to analyze our data set using several methods:
+
+```{r}
+iw<-c(0.998,0.950,1.023,0.980,0.907,0.958,1.016,0.957,0.998,0.979,0.982,1.000,0.998,1.017,0.976,0.967,1.023,1.033,
+0.979,0.983,0.990,0.998)
+im<-c(0.931,1.019,0.936,0.974,0.949,0.939,0.984,0.956,0.947,0.969,0.979,0.922,0.973,1.014,0.936,0.966,1.020,0.975,1.015)
+t.test(iw,im) # Assuming normality
+```
+
+Three kind of bootstrap CI for the difference of means:
+```{r}
+nw<-length(iw); 
+nm<-length(im);
+nb<-1000
+
+difb<-numeric(nb)
+for(i in 1:nb){
+	iwb<-sample(iw,nw,replace=T)
+	imb<-sample(im,nm,replace=T)
+	difb[i]<-mean(iwb)-mean(imb)
+}
+
+#Quantile method:
+quantile(difb,c(0.025,0.975))
+
+# Simple method:
+2*(mean(iw)-mean(im))-quantile(difb,0.975)
+2*(mean(iw)-mean(im))-quantile(difb,0.025)
+```
+
+Bootstrap-t CI method:
+
+$$ V(\bar{X}_{w} - \bar{X}_{m} ) = V(\bar{X}_{w}) + V(\bar{X}_{m}) = \frac{\sigma^{2}_{w}}{n_{w}} + \frac{\sigma^{2}_{m}}{n_{m}}$$
+```{r}
+tb <- numeric(nb)
+theta <- mean(iw) - mean(im)
+sdtheta <- sqrt(var(iw)/nw+var(im)/nm)
+
+for(i in 1:nb){
+	iwb<-sample(iw,nw,replace=T)
+	imb<-sample(im,nm,replace=T)
+	thetab<-mean(iwb)-mean(imb)
+	sdthetab<- sqrt(var(iwb)/nw+var(imb)/nm)
+	tb[i]<-(thetab-theta)/sdthetab
+}
+
+# Quantile method
+quantile(tb,c(0.025,0.975))
+
+# Simple method
+theta+sdtheta*quantile(tb,0.025)
+theta+sdtheta*quantile(tb,0.975)
+```
+
+## Non-linear regression model
+```{r}
+x <- c(77.6,114.9,141.1,190.8,239.9,289,332.8,378.4,
+			 434.8,477.3,536.8,593.1,689.1,760)
+y <-c (10.07,14.73,17.94,23.93,29.61,35.18,40.02,
+			 44.82,50.76,55.05,61.01,66.4,75.47,81.78)
+
+ajust<- nls(y ~ b1 * (1-exp(-b2*x)), start = list(b1= 2, b2=0.001))
+summary(ajust)
+```
+```{r}
+xx<-seq(1,10000)
+pred<-summary(ajust)$coefficients[1] * (1-exp(-summary(ajust)$coefficients[2] *xx))
+plot(xx,pred)
+```
+
+ STUFF
+
+
+## The bootstrap method in AR(p) time series
+
+WIP: THEORY
+
+Consider the following time series with 30 observations:
+
+```{r}
+x<-c(12.1,12.9,17.5,12.3,14.3,13.1,12.5,10,10.9,11.7,13.2,
+11.1,12.1,11.4,11.2,11.7,13.2,16.5,15.9,16.6,9.5,9,11.6,10.3,
+12.4,10.4,12.9,19.1,12.1,8.5)
+ts.plot(x)
+```
+
+
+We want to fit it using an $AR(2)$ model.
+
+```{r}
+fit <- ar(x, aic = FALSE, order.max = 2, method = "yule-walker")
+fit
+mean(x)
+```
+
+Fibbonacci's sequence is an example of a classical deterministic (i.e., there's no $Z_{t}$ noise) auto-regressive model:
+$$ Y_{t} = Y_{t-1} + Y_{t-2} $$
+
+#### Bootstraping the residuals
+ 1. Fit the original time series and keep the residuals and the
+estimates of the parameters.
+```{r}
+res<-fit$resid
+res
+```
+Note that the two first values are missing.
+
+
+ 2. Construct the bootstrap series using the estimated process
+and a sample of the residuals instead of $Z_{t}$:
+$$ YP_{t} = 11.554 + 0.287 YP_{t-1} - 0.209 YP_{t-2} + resp_{t} $$
+
+```{r}
+nb<-1000; mu<-numeric(nb); phi1<-numeric(nb)
+phi2<-numeric(nb)
+xb<-numeric(30)
+for(j in 1:nb){
+xb[1]<-x[1];xb[2]<-x[2]
+for (i in 3:30){
+r<-sample(res[3:30],1,replace=T)
+xb[i]<-fit$ar[1]*xb[i-1]+fit$ar[2]*xb[i-2]+mean(x)*(1-fit$ar[1]-
+fit$ar[2])+r}
+fitb<-ar(xb, aic = FALSE, order.max = 2,method=c("yule-walker"))
+mu[j]<-mean(xb);phi1[j]<-fitb$ar[1]; phi2[j]<-fitb$ar[2] }
+```
+
