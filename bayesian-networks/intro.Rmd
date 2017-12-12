@@ -1,0 +1,72 @@
+---
+title: "Data Visualization"
+author: "Alfredo Hernández"
+subtitle: "Bayesian Networks with R"
+date: "11 December 2017"
+output:
+  html_notebook:
+    highlight: pygments
+    theme: cosmo
+    toc: yes
+---
+
+```{r eval=FALSE, include=FALSE}
+source("https://bioconductor.org/biocLite.R")
+biocLite("RBGL")
+biocLite("Rgraphviz")
+```
+
+
+```{r include=FALSE}
+library(gRain)
+```
+
+```{r}
+# First: which are the possible values of the nodes (all nodes are boolean):
+tf <- c("false", "true")
+
+# Specify the CPTs:
+node.O <- cptable(~ O, values = c(4,6), levels=tf)
+node.L <- cptable(~ L + O, values = c(9.5, 0.5, 5, 5), levels=tf)
+node.C <- cptable(~ C + O, values = c(9,1,2,8), levels=tf)
+
+# Create an intermediate representation of the CPTs:
+plist <- compileCPT(list(node.O, node.L, node.C))
+plist
+plist$O
+plist$L
+plist$C
+```
+
+
+```{r}
+# Create a network of name ”Nicholson.net"
+Nicholson.net <- grain(plist)
+summary(Nicholson.net)
+
+# The graph:
+plot(Nicholson.net)
+```
+
+```{r}
+#The marginal probability of each variable
+querygrain(Nicholson.net, nodes = c("O", "L", "C"), type="marginal")
+```
+
+
+```{r}
+#Compute the joint probability of some nodes. For instance:
+querygrain(Nicholson.net, nodes = c("L", "C"), type = "joint")
+```
+
+```{r}
+# We can compute the probability of an event given an evidence.
+# If evidence is "N=true", in order to compute the probability of the
+# other nodes, first we add the evidence to the network and name the
+# new BN Nicholson.net.2:
+Nicholson.net.2 <- setEvidence(Nicholson.net, nodes = c("C"), states = c("true"))
+
+# The marginal distributions given the evidence are:
+querygrain(Nicholson.net.2, nodes = c("L"), type="marginal")
+```
+
