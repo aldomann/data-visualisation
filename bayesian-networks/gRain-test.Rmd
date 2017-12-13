@@ -1,0 +1,59 @@
+---
+title: "Data Visualization"
+author: "Alfredo Hernández"
+subtitle: "Bayesian Networks with R: gRain package"
+date: "13 December 2017"
+output:
+  html_notebook:
+    highlight: pygments
+    theme: cosmo
+    toc: yes
+---
+
+```{r eval=FALSE, include=FALSE}
+source("https://bioconductor.org/biocLite.R")
+biocLite("RBGL")
+biocLite("Rgraphviz")
+```
+
+
+```{r include=FALSE}
+library(gRain)
+```
+
+```{r}
+# First: which are the possible values of the nodes (all nodes are boolean):
+tf<-c("false","true")
+# Specify the CPTs:
+node.T<-cptable(~ T, values=c(0.9, 0.1), levels=tf)
+node.O<-cptable(~ O, values=c(0.6, 0.4),levels=tf)
+node.N<-cptable(~ N + T, values=c(0.9, 0.1, 0.2, 0.8), levels=tf)
+node.M<-cptable(~ M + O + T, values=c(0.7, 0.3, 0.4, 0.6, 0.4, 0.6, 0.2, 0.8), levels=tf)
+# Create an intermediate representation of the CPTs:
+plist<-compileCPT(list(node.O,node.T,node.N,node.M))
+plist.m<-compileCPT(list(node.T,node.M,node.O))
+plist.n<-compileCPT(list(node.T,node.N))
+```
+
+```{r}
+# plist
+# plist$O
+# plist$T
+# plist$N
+# plist$M
+```
+
+```{r}
+# Different subgraphs
+total.net <- grain(plist)
+martin.net <- grain(plist.m)
+norman.net <- grain(plist.n)
+```
+
+
+```{r}
+# Plot the graphs
+plot(total.net)
+plot(martin.net)
+plot(norman.net)
+```
