@@ -26,9 +26,9 @@ library(gRain)
 tf <- c("false", "true")
 
 # Specify the CPTs:
-node.O <- cptable(~ O, values = c(4,6), levels=tf)
-node.L <- cptable(~ L + O, values = c(9.5, 0.5, 5, 5), levels=tf)
-node.C <- cptable(~ C + O, values = c(9,1,2,8), levels=tf)
+node.O <- cptable(~ O, values = c(0.4,0.6), levels=tf)
+node.L <- cptable(~ L + O, values = c(0.95, 0.05, 0.5, 0.5), levels=tf)
+node.C <- cptable(~ C + O, values = c(0.9, 0.1, 0.2, 0.8), levels=tf)
 
 # Create an intermediate representation of the CPTs:
 plist <- compileCPT(list(node.O, node.L, node.C))
@@ -49,13 +49,13 @@ plot(Nicholson.net)
 ```
 
 ```{r}
-#The marginal probability of each variable
+# The marginal probability of each variable
 querygrain(Nicholson.net, nodes = c("O", "L", "C"), type="marginal")
 ```
 
 
 ```{r}
-#Compute the joint probability of some nodes. For instance:
+# Compute the joint probability of some nodes. For instance:
 querygrain(Nicholson.net, nodes = c("L", "C"), type = "joint")
 ```
 
