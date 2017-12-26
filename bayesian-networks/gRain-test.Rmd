@@ -21,6 +21,7 @@ biocLite("Rgraphviz")
 library(gRain)
 ```
 
+# Create simple DAG
 ```{r}
 # First: which are the possible values of the nodes (all nodes are boolean):
 tf<-c("false","true")
@@ -31,17 +32,22 @@ node.N<-cptable(~ N + T, values=c(0.9, 0.1, 0.2, 0.8), levels=tf)
 node.M<-cptable(~ M + O + T, values=c(0.7, 0.3, 0.4, 0.6, 0.4, 0.6, 0.2, 0.8), levels=tf)
 # Create an intermediate representation of the CPTs:
 plist<-compileCPT(list(node.O,node.T,node.N,node.M))
-plist.m<-compileCPT(list(node.T,node.M,node.O))
-plist.n<-compileCPT(list(node.T,node.N))
 ```
 
 ```{r}
-# plist
-# plist$O
-# plist$T
-# plist$N
-# plist$M
+plist
+plist$O
+plist$T
+plist$N
+plist$M
 ```
+
+## Different subgraphs
+```{r}
+plist.m<-compileCPT(list(node.T,node.M,node.O))
+plist.n<-compileCPT(list(node.T,node.N))
+```
+Notice that the subgraphs must include the parents of the the used children.
 
 ```{r}
 # Different subgraphs
